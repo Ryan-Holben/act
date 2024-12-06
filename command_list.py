@@ -1,8 +1,9 @@
 from command import Command
+from collections import OrderedDict
 
-class CommandList:
+class CommandList2:
     def __init__(self):
-        self.lines = []
+        self.commands = OrderedDict([])
 
     def load(self):
         pass
@@ -10,41 +11,29 @@ class CommandList:
     def save(self):
         pass
 
-    def fuzzy_find(self, string):
+    def fuzzy_find(self, search_string):
         """Input a string, return a list of all commands containing the string as a substring, ordered by something like
         most consecutive letters, tiebreakers by normal string ordering, or most recent, or something."""
 
-        # Algorithm idea:
-        # - Search for string (disjointed is allowed)
-        # - Add a score equalling (max_idx - min_idx) - strlen <-- 0 = exact match, higher = spread out
-            # - To be thorough, would have to do this for ALL submatches and pick the best
-        # - Add a score for total command string length (favor shorter commands)
-        # - Add a score for most recently used
+        if search_string is None or len(search_string) == 0:
+            return [[cmd, {}, None] for cmd in self.commands.values()]
 
         output = []
-        for item in self.lines:
-            i = 0  # Index for 'string'
-            j = 0  # Index for 'item'
-            indices = []
-
-            while i < len(string) and j < len(item):
-                if string[i].lower() == item[j].lower():
-                    indices.append(j)
-                    i += 1  # Move to the next character in 'sub'
-                j += 1  # Always move to the next character in 'string'
-
-            if i == len(string):  # If all characters in 'sub' were found
-                output.append([item, indices])
+        for alias, cmd in self.commands.items():
+            indices, score = cmd.fuzzy_find_and_score(search_string)
+            if score is not None:
+                output.append([cmd, indices, score])
                 
         # Order the input by consecutivity score & return it
-        return sorted(output, key=lambda x: x[1][-1]-x[1][0]-len(string) if len(x[1]) > 1 else 0)
+        return sorted(output, key=lambda x: x[2])
 
     def add(self, command):
         """Add a new command."""
-        self.lines.append(command)
+        self.commands[command.alias] = command
 
     def remove(self, command):
         """Removes a command from the list."""
+        self.commands.popitem(command.alias)
 
     def __len__(self):
-        return len(self.lines)
+        return len(self.commands)

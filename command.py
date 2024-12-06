@@ -22,6 +22,9 @@ class Command:
         self.alias = alias
         self.doc = doc
         self.code = code
+    
+    def __hash__(self):
+        return hash(self)
 
     def execute(self, **kwargs):
         # Need to recursively resolve any subcommands
@@ -32,25 +35,28 @@ class Command:
         """Do a dry run with some inputs and verify the output."""
         pass
 
-    def fuzzy_find_and_score(self, substring):
+    def fuzzy_find_and_score(self, search_string):
         """Returns indices of matches in each field, as well as a total score to use for ordering.
             That score is None if no matches are found.
         """
+        if len(search_string) == 0:
+            return {}, None
+        
         # Search all fields for substring
-        searches = {}
-        searches["alias"] = fuzzy_find(substring, self.alias)
-        searches["doc"] = fuzzy_find(substring, self.doc)
-        searches["code"] = fuzzy_find(substring, self.code)
+        indices = {}
+        indices["alias"] = fuzzy_find(search_string, self.alias)
+        indices["doc"] = fuzzy_find(search_string, self.doc)
+        indices["code"] = fuzzy_find(search_string, self.code)
 
         # For each, if the substring was found, produce a consecutivity score, otherwise score is None
         scores = []
-        for key, val in searches:
-            scores[key] = val[-1] - val[0] - len(substring) if len(val) == len(substring) else None
+        for key, idx_list in indices.items():
+            scores.append(idx_list[-1] - idx_list[0] - len(search_string) if len(idx_list) == len(search_string) else None)
         
         # Pick the minimum score for the fields where we found a match.  Reasoning:  if we get a perfect match as an alias, but a bad
         #   match in the code for that item, this should still be a top recommended match.
         valid_scores = [s for s in scores if s is not None]
         total_score = min(valid_scores) if len(valid_scores) > 0 else None
         
-        return searches, total_score
+        return indices, total_score
         
