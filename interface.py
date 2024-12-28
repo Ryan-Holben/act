@@ -1,4 +1,5 @@
 import curses
+import curses.panel
 
 from constants import InterfaceConstants
 
@@ -15,8 +16,10 @@ class Interface():
 
     def initialize_window(self):
         """Internal function to manage a window object.  Behavior is better using this for drawing & getch,
-            rather than working directly with the screen object."""
+            rather than working directly with the screen object.  We also initialize a panel abstraction.
+            This helps with stacking windows and managing drawing in a simpler way."""
         self.win = curses.newwin(curses.LINES, curses.COLS, 0, 0)
+        self.panel = curses.panel.new_panel(self.win)
         self.win.keypad(True)
 
     def draw_highlighted_text(self, y, x, string, indices):
@@ -86,11 +89,10 @@ class Interface():
         self.draw_state(state)
 
         # Render all of the above drawings that we have prepared
-        self.win.refresh()
+        # self.win.refresh()
 
     def resize(self):
         """Call this when we detect the terminal was resized."""
-        curses.resizeterm(*self.screen.getmaxyx())
         self.compute_constants()
         self.initialize_window()
 
