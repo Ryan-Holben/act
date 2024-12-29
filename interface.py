@@ -12,7 +12,7 @@ class Interface():
         self.selected = 0
 
     def compute_constants(self):
-        self.const = InterfaceConstants(self.win)
+        self.const = InterfaceConstants()
 
     def initialize_window(self):
         """Internal function to manage a window object.  Behavior is better using this for drawing & getch,

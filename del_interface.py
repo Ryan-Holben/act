@@ -1,9 +1,11 @@
 from dialogue_box import DialogueBox
+import curses
 
 class DeleteInterface(DialogueBox):
-    def draw(self):
-        self.win.border()
-        self.win.addstr(0, 2, " Delete Command ")
-        self.win.addstr(2, 10, "Enter - Delete current command")
-        self.win.addstr(4, 10, "Esc - Cancel")
+    def set_command_str(self, command_str):
+        self.command_str = command_str
+
+    def draw_internal(self):
+        self.addstr(2, 10, "Press Enter to delete the following command:")
+        self.addstr(4, 15, self.command_str, curses.A_BOLD)
         

@@ -17,9 +17,9 @@ class TopInterface():
 
         # Set up interface subclasses to manage
         self.interface_search = Interface(self.stdscr)
-        self.menu = MenuInterface(self.stdscr)
-        self.save_interface = SaveInterface(self.stdscr)
-        self.delete_interface = DeleteInterface(self.stdscr)
+        self.menu = MenuInterface(self.stdscr, "Menu", lines=9, cols=60)
+        self.save_interface = SaveInterface(self.stdscr, "Save Command", lines=9, cols=60)
+        self.delete_interface = DeleteInterface(self.stdscr, "Delete Command", lines=9, cols=60)
 
         # Set up UI state to manage
         self.state = ["main"]
@@ -74,13 +74,14 @@ class TopInterface():
             else:
                 if match(self.state, "menu", "save"):
                     self.save_interface.draw()
-                elif match(self.state, "menu", "delete"):    
+                elif match(self.state, "menu", "delete"):
+                    self.delete_interface.set_command_str(matches[self.interface_search.selected][0].alias)
                     self.delete_interface.draw()
-
+        
         curses.panel.update_panels()
         curses.doupdate()
 
-    def process_input(self, c):
+    def process_input(self, c, command_list, matches):
         if match(self.state, "main"):
             if c == 27:
                 self.change_state(["menu"])
@@ -89,17 +90,22 @@ class TopInterface():
         elif match(self.state, "menu"):
             if len(self.state) == 1:
                 if c == 27:
-                    self.change_state(["quit"])
+                    self.change_state(["main"])
                 elif c == ord("s"):
                     self.change_state(self.state + ["save"])
                 elif c == ord("d"):
                     self.change_state(self.state + ["delete"])
+                elif c == ord("q"):
+                    self.change_state(["quit"])
             else:
                 if match(self.state, "menu", "save"):
                     if c == 27:
                         self.change_state(self.state[:-1])
                 elif match(self.state, "menu", "delete"):
                     if c == 27:
+                        self.change_state(self.state[:-1])
+                    if c == 10:
+                        command_list.remove(matches[self.interface_search.selected][0])
                         self.change_state(self.state[:-1])
 
     def getch(self):

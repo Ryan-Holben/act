@@ -8,15 +8,17 @@ def filename_path(filename):
     return Path(__file__).parent / filename
 
 class CommandList:
-    def __init__(self):
+    def __init__(self, filename):
         self.commands = OrderedDict([])
+        self.filename = filename
+        self.load()
 
-    def load(self, filename):
-        path = filename_path(filename)  
+    def load(self):
+        path = filename_path(self.filename)  
         if path.exists():
             with open(path, "rb") as handle:
                 self.commands = pickle.load(handle)
-        else:
+        if len(self.commands) == 0:
             self.commands = OrderedDict([])
             self.add(Command("list/python", "List all Python files in the current folder", "ls -lah *.py"))
             self.add(Command("home", "Print the home directory", "echo $HOME"))
@@ -25,8 +27,8 @@ class CommandList:
             self.add(Command("cat", "dog", "bird"))
             self.add(Command("list files", "List all files in human readable format", "ls -lah"))
 
-    def save(self, filename):
-        path = filename_path(filename)
+    def save(self):
+        path = filename_path(self.filename)
         with open(path, "wb") as handle:
             pickle.dump(self.commands, handle)
 
@@ -46,13 +48,17 @@ class CommandList:
         # Order the input by consecutivity score & return it
         return sorted(output, key=lambda x: x[2])
 
-    def add(self, command):
+    def add(self, command, save=True):
         """Add a new command."""
         self.commands[command.alias] = command
+        if save:
+            self.save()
 
-    def remove(self, command):
+    def remove(self, command, save=True):
         """Removes a command from the list."""
         self.commands.popitem(command.alias)
+        if save:
+            self.save()
 
     def __len__(self):
         return len(self.commands)

@@ -3,7 +3,7 @@ import curses
 command_list_filename = "commands.pkl"
 
 class InterfaceConstants():
-    def __init__(self, win):
+    def __init__(self):
         self.input_y = curses.LINES - 1
         self.input_x = 3
         self.input_prompt_str = "> "
@@ -21,3 +21,9 @@ class InterfaceConstants():
         self.side_buf = 2
         self.col_sep = 1
         self.col_width = int((curses.COLS - 2 * self.side_buf) / self.num_cols) - self.col_sep * (self.num_cols - 1)
+
+    def compute_dialogue_constants(self, lines, cols):
+        self.dialogue_lines = lines
+        self.dialogue_cols = cols
+        self.topleft_x = max(0, int(curses.COLS / 2) - int(cols / 2))
+        self.topleft_y = max(0, int(curses.LINES / 2) - int(lines / 2))

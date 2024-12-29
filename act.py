@@ -3,19 +3,14 @@ import curses.panel
 import os
 import subprocess
 
-from command import Command
 from command_list import CommandList
 from constants import command_list_filename
-
 from top_interface import TopInterface
 
 
-command_list = CommandList()
-
 def main(stdscr):
     # Initialize the command list & fuzzy search on an empty string
-    command_list.load(command_list_filename)
-    matches = command_list.fuzzy_find("")
+    command_list = CommandList(command_list_filename)
 
     # Initialize the interface
     stdscr.keypad(True)
@@ -25,14 +20,15 @@ def main(stdscr):
     # Main execution loop
     while main_interface.running():
         # Draw the interface
+        matches = command_list.fuzzy_find("")
         main_interface.draw_all(command_list, matches)
 
-        # Wait for keyboard input & special actions like terminal resizing
+        # Wait for keyboard input or special actions like terminal resizing
         c = main_interface.getch()
         main_interface.check_for_resize(c)
 
-        # Act on the input
-        main_interface.process_input(c)
+        # Act on the input by updating the state & interface, or quitting
+        main_interface.process_input(c, command_list, matches)
 
     return
 
@@ -95,15 +91,18 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    # Set up curses in a way that plays nicely.  For example, if we exit in any way, including by throwing exception,
-    #   an exit hook will restore the terminal to its previous state.  Also sets some commonly used settings.
+    # The OS by default delays when we can read ESC
     os.environ.setdefault("ESCDELAY", "0")
+
+    # Set up curses in a way that plays nicely with the terminal.  If we exit in any way, including by throwing
+    #   exceptions, an exit hook will restore the terminal to its previous state.  Also sets some commonly used
+    #   settings.
     ret = curses.wrapper(main)
+
+    # If main() returned a command the user wants to run, we print & execute it
     if ret:
         print("> " + ret + "\n")
         s = subprocess.getstatusoutput(ret)
         print(s[1])
         if s[0] != 0:
             print(f"Command returned nonzero value {s[0]}")
-
-    command_list.save(command_list_filename)
