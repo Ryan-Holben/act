@@ -18,6 +18,12 @@ class CommandList:
                 self.commands = pickle.load(handle)
         else:
             self.commands = OrderedDict([])
+            self.add(Command("list/python", "List all Python files in the current folder", "ls -lah *.py"))
+            self.add(Command("home", "Print the home directory", "echo $HOME"))
+            self.add(Command("Fancy echo", "See what it does!", "echo We live in $HOME and we\\\'re visiting $(pwd)"))
+            self.add(Command("Hello world", "This is a test command", "echo Hello world!"))
+            self.add(Command("cat", "dog", "bird"))
+            self.add(Command("list files", "List all files in human readable format", "ls -lah"))
 
     def save(self, filename):
         path = filename_path(filename)
