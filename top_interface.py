@@ -85,8 +85,11 @@ class TopInterface():
         if match(self.state, "main"):
             if c == 27:
                 self.change_state(["menu"])
+            elif c == 10:
+                # Enter key runs the command
+                return self.interface_search.input_str
             else:
-                pass # Call main interface here
+                self.interface_search.process_input(c, command_list, matches)
         elif match(self.state, "menu"):
             if len(self.state) == 1:
                 if c == 27:

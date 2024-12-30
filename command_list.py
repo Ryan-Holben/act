@@ -26,6 +26,9 @@ class CommandList:
             self.add(Command("Hello world", "This is a test command", "echo Hello world!"))
             self.add(Command("cat", "dog", "bird"))
             self.add(Command("list files", "List all files in human readable format", "ls -lah"))
+            self.add(Command("test", "Test expanding commands", "echo $mycmd"))
+            self.add(Command("mycmd", "String for hello world", "\"hello world\""))
+
 
     def save(self):
         path = filename_path(self.filename)
@@ -62,3 +65,36 @@ class CommandList:
 
     def __len__(self):
         return len(self.commands)
+    
+    def expand_command(self, input):
+        """Process an input string by expanding any act.py commands.
+        
+            Ex:
+            Input: $test
+            Becomes: echo $mycmd
+            Becomes: echo "hello world"
+
+            And also resolves $test but not $testing, we need exact string match
+        """
+        idx = 0
+        output = ""
+        while idx < len(input):
+            # Special `act` commands look like $alias or $alias(x, y, z)
+            if input[idx] == "$":
+                # Look for an exact alias match
+                match = False
+                for alias in self.commands:
+                    if input[idx + 1: idx + len(alias) + 1] == alias:
+                        match = True
+                        break
+                if match:
+                    # Found a match!
+                    command = self.commands[alias]
+                    # Recursively expand the command, in case it contains further $alias commands
+                    # TODO: Detect/prevent commands from referring to each other forever eternity!
+                    output += self.expand_command(command.code)
+                    idx += len(alias) + 1
+                    continue
+            output += input[idx]
+            idx += 1
+        return output

@@ -4,23 +4,24 @@ import os
 import subprocess
 
 from command_list import CommandList
+from command import Command
 from constants import command_list_filename
 from top_interface import TopInterface
 
 
-def main(stdscr):
-    # Initialize the command list & fuzzy search on an empty string
-    command_list = CommandList(command_list_filename)
+# Initialize the command list & fuzzy search on an empty string
+command_list = CommandList(command_list_filename)
 
+def main(stdscr):
     # Initialize the interface
     stdscr.keypad(True)
     main_interface = TopInterface(stdscr)
-    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
     # Main execution loop
     while main_interface.running():
         # Draw the interface
-        matches = command_list.fuzzy_find("")
+        matches = command_list.fuzzy_find(main_interface.interface_search.input_str)
         main_interface.draw_all(command_list, matches)
 
         # Wait for keyboard input or special actions like terminal resizing
@@ -28,67 +29,11 @@ def main(stdscr):
         main_interface.check_for_resize(c)
 
         # Act on the input by updating the state & interface, or quitting
-        main_interface.process_input(c, command_list, matches)
+        cmd = main_interface.process_input(c, command_list, matches)
+        if cmd:
+            return cmd
 
-    return
-
-    # while True:
-    #     # Query the possible actions
-    #     matches = command_list.fuzzy_find(interface.input_str)
-
-    #     # Read any keyboard input. Doesn't use buffering, which means we have to handle a lot of things manually,
-    #     #   but we can also use special keys, and respond instantly to them.
-    #     if interface_state == "main typing":
-    #         c = interface.getch()
-    #         if c == 27:     # ESC key to quit
-    #             return
-            
-    #         elif c == curses.KEY_RESIZE:        # Detect when the terminal gets resized, and update the interface to match
-    #             resize(stdscr)
-
-    #         elif c >= 32 and c < 127:         # Standard text input
-    #             if len(interface.input_str) < interface.const.input_str_w - 1:
-    #                 interface.input_str += chr(c)
-    #                 matches = command_list.fuzzy_find(interface.input_str)
-
-    #         elif c == 127 and len(interface.input_str) > 0:    # Delete key
-    #             interface.input_str = interface.input_str[:-1]
-    #             matches = command_list.fuzzy_find(interface.input_str)
-                
-    #         elif c == 10:       # Enter key
-    #             # command_list.add(interface.input_str)
-    #             # interface.input_str = ""
-    #             if interface.input_str == matches[interface.selected][0].alias:
-    #                 # return interface.input_str
-    #                 return matches[interface.selected][0].code
-    #             interface.input_str = matches[interface.selected][0].alias
-    #             matches = command_list.fuzzy_find(interface.input_str)
-    #             interface.selected = 0
-
-    #         elif c == curses.KEY_UP:
-    #             interface.selected += 1
-
-    #         elif c == curses.KEY_DOWN:
-    #             interface.selected -= 1
-                
-    #         elif c == ord("\t"):
-    #             # interface.input_str = "BIG CHUNGUS"
-    #             interface_state = "esc menu"
-        
-    #         if interface.selected >= min(len(matches), interface.const.list_max_num_lines):
-    #             interface.selected = min(len(matches), interface.const.list_max_num_lines) - 1
-    #         elif interface.selected < 0:
-    #             interface.selected = 0
-        
-    #     elif interface_state == "esc menu":
-    #         if c == 27:
-    #             return
-    #         # elif c == 10:
-    #         #     interface_state = "main typing"
-
-    #     # Draw the interface
-    #     interface.draw(matches, command_list)
-
+    return None
 
 if __name__ == "__main__":
     # The OS by default delays when we can read ESC
@@ -100,9 +45,18 @@ if __name__ == "__main__":
     ret = curses.wrapper(main)
 
     # If main() returned a command the user wants to run, we print & execute it
-    if ret:
-        print("> " + ret + "\n")
-        s = subprocess.getstatusoutput(ret)
-        print(s[1])
-        if s[0] != 0:
-            print(f"Command returned nonzero value {s[0]}")
+    if ret is not None:
+        final_cmd = command_list.expand_command(ret)
+        print("> " + final_cmd + "\n")
+        # TODO: Run in another thread and let it print to stdout in real time
+        s = subprocess.getstatusoutput(final_cmd)   # Execute the command
+        print(s[1])                                 # Print the output
+        exit(s[0])                                  # Pass along the exit code
+
+# def test():
+#     print(command_list.expand_command("echo $cat"))
+#     # print(len(command_list.commands))
+#     # for alias in command_list.commands:
+#     #     print(alias)
+
+# test()
