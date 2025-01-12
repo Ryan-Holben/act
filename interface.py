@@ -41,10 +41,10 @@ class Interface():
         elif c == curses.KEY_DOWN:
             self.selected -= 1
 
-        # if interface.selected >= min(len(matches), interface.const.list_max_num_lines):
-        #     interface.selected = min(len(matches), interface.const.list_max_num_lines) - 1
-        # elif interface.selected < 0:
-        #     interface.selected = 0
+        if self.selected >= min(len(matches), self.const.list_max_num_lines):
+            self.selected = min(len(matches), self.const.list_max_num_lines) - 1
+        elif self.selected < 0:
+            self.selected = 0
 
     def draw_highlighted_text(self, y, x, string, indices):
         """Draws a string at the given location, highlighting the specified indices."""

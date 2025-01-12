@@ -5,12 +5,12 @@ import subprocess
 
 from command_list import CommandList
 from command import Command
-from constants import command_list_filename
+import constants
 from top_interface import TopInterface
 
 
 # Initialize the command list & fuzzy search on an empty string
-command_list = CommandList(command_list_filename)
+command_list = CommandList(constants.command_list_filename)
 
 def main(stdscr):
     # Initialize the interface
@@ -36,7 +36,11 @@ def main(stdscr):
     return None
 
 if __name__ == "__main__":
-    # The OS by default delays when we can read ESC
+    # Cleanup any previously existing output
+    if os.path.exists(constants.output_filename):
+        os.remove(constants.output_filename)
+
+    # The OS by default inserts a delay before reading ESC
     os.environ.setdefault("ESCDELAY", "0")
 
     # Set up curses in a way that plays nicely with the terminal.  If we exit in any way, including by throwing
@@ -44,14 +48,16 @@ if __name__ == "__main__":
     #   settings.
     ret = curses.wrapper(main)
 
-    # If main() returned a command the user wants to run, we print & execute it
+    # If main() returned a command the user wants to run, we:
+    # - print its resolved form
+    # - write it to a special file & exit
+    # - act.sh will then see that file & execute the command it contains
     if ret is not None:
         final_cmd = command_list.expand_command(ret)
         print("> " + final_cmd + "\n")
-        # TODO: Run in another thread and let it print to stdout in real time
-        s = subprocess.getstatusoutput(final_cmd)   # Execute the command
-        print(s[1])                                 # Print the output
-        exit(s[0])                                  # Pass along the exit code
+        with open(constants.output_filename, "w") as outfile:
+            outfile.write(final_cmd)
+
 
 # def test():
 #     print(command_list.expand_command("echo $cat"))

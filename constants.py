@@ -1,6 +1,7 @@
 import curses
 
 command_list_filename = "commands.pkl"
+output_filename = "act_output.txt"
 
 class InterfaceConstants():
     def __init__(self):

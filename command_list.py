@@ -28,6 +28,8 @@ class CommandList:
             self.add(Command("list files", "List all files in human readable format", "ls -lah"))
             self.add(Command("test", "Test expanding commands", "echo $mycmd"))
             self.add(Command("mycmd", "String for hello world", "\"hello world\""))
+            self.add(Command("linecount", "Count the lines in a file", "wc -l"))
+            self.add(Command("git/commits", "Succinct list of git commits", "git log --oneline"))
 
 
     def save(self):
