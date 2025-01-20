@@ -3,33 +3,31 @@ import curses.panel
 import os
 import subprocess
 
-from command_list import CommandList
 from command import Command
+from command_list import CommandList
 import constants
 from top_interface import TopInterface
 
-
-# Initialize the command list & fuzzy search on an empty string
 command_list = CommandList(constants.command_list_filename)
 
 def main(stdscr):
     # Initialize the interface
     stdscr.keypad(True)
-    main_interface = TopInterface(stdscr)
+    main_interface = TopInterface(stdscr, command_list)
     curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
 
     # Main execution loop
     while main_interface.running():
         # Draw the interface
-        matches = command_list.fuzzy_find(main_interface.interface_search.input_str)
-        main_interface.draw_all(command_list, matches)
+        main_interface.draw_all()
 
         # Wait for keyboard input or special actions like terminal resizing
         c = main_interface.getch()
         main_interface.check_for_resize(c)
 
         # Act on the input by updating the state & interface, or quitting
-        cmd = main_interface.process_input(c, command_list, matches)
+        cmd = main_interface.process_input(c)
         if cmd:
             return cmd
 

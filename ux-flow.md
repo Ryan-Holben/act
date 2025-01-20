@@ -16,18 +16,12 @@ Press ESC to bring up menu
 ## Example user stories
 1. "Type $ to find a command"
 2. User types $, which brings up command list
-3. As user continues to type, what they type after the most recent $ gets fuzzy searched
-    1. If they press up or down, the text doesn't change, but highlight does.
-    2. If they press TAB, replace text after the last $ with the highlighted item's alias and (
-    3. It now exits fuzzy search mode.  So they can now insert variables or whatever.  Up to them to close the ).
-    4. => So this means we're in fuzzy search mode whenever we're between $ and (
-    5. But then how do they input non-act $'s?
-4. Alternative design:
     1. Fuzzy search always searches after the last $, no matter what
         1. Pros:  Much simpler interface.  No weird casing for act and non-act $'s.
             1. Make it easier to understand by highlighting the user input text segment that's being fuzzy searched.
             1. Also: Highlight segments that will be replaced.  And/or, show the live view of the resolved result.
         2. Cons:  ??
+3. If user types multiple $'s, we remove the first one, and then don't substitute any of it for an act command.  In this way, we prevent collisions with environmental variables.  For example:  if we define $USER in act, and the OS environment also has defined $USER, then an act command would include $$USER to access the OS's version of this environmental variable.  (Also, this is only necessary to do if that command happens to be defined within act.  Anything that doesn't resolve to an act command will be executed as-is.)
 
 
 ## Example interfaces

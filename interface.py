@@ -1,18 +1,26 @@
 import curses
 import curses.panel
 
-from constants import InterfaceConstants
+from command_list import CommandList
+import constants
 
 class Interface():
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, command_list):
         self.screen = stdscr
         self.initialize_window()
         self.compute_constants()
         self.input_str = ""
+        self.search_str = ""
+        self.search_str_idx = len(self.search_str)
         self.selected = 0
 
+        # Initialize the command list & fuzzy search on an empty string
+        self.command_list = command_list
+        self.matches = self.command_list.fuzzy_find("")
+        
+
     def compute_constants(self):
-        self.const = InterfaceConstants()
+        self.const = constants.InterfaceConstants()
 
     def initialize_window(self):
         """Internal function to manage a window object.  Behavior is better using this for drawing & getch,
@@ -21,30 +29,40 @@ class Interface():
         self.win = curses.newwin(curses.LINES, curses.COLS, 0, 0)
         self.panel = curses.panel.new_panel(self.win)
         self.win.keypad(True)
+    
+    def get_search_string_and_idx(self):
+        for i in range(len(self.input_str)-1, -1, -1):
+            if self.input_str[i] == "$":
+                return self.input_str[i+1:], i + 1
+        return "", len(self.input_str)
 
-    def process_input(self, c, command_list, matches):
+    def process_input(self, c):
         if c >= 32 and c < 127:                       # Standard text input
             if len(self.input_str) < self.const.input_str_w - 1:
                 self.input_str += chr(c)
         elif c == 127 and len(self.input_str) > 0:    # Delete key
             self.input_str = self.input_str[:-1]
-        elif c == ord("\t"):                          # Tab autocompletes
-            # command_list.add(interface.input_str)
-            # interface.input_str = ""
-            if self.input_str == matches[self.selected][0].alias:
-                # return interface.input_str
-                return matches[self.selected][0].code
-            self.input_str = matches[self.selected][0].alias
+        elif c == ord("\t"):                          # Tab autocompletes using the selected command
+            self.input_str = self.input_str[:self.search_str_idx] + self.matches[self.selected][0].alias
             self.selected = 0
         elif c == curses.KEY_UP:
             self.selected += 1
         elif c == curses.KEY_DOWN:
             self.selected -= 1
 
-        if self.selected >= min(len(matches), self.const.list_max_num_lines):
-            self.selected = min(len(matches), self.const.list_max_num_lines) - 1
+        # Ensure we are fuzzy searching the correct part of the input string
+        self.search_str, self.search_str_idx = self.get_search_string_and_idx()
+        
+        # Update the matches
+        self.matches = self.command_list.fuzzy_find(self.search_str)
+
+        # Ensure the selected command remains in the set of displayed matches
+        if self.selected >= min(len(self.matches), self.const.list_max_num_lines):
+            self.selected = min(len(self.matches), self.const.list_max_num_lines) - 1
         elif self.selected < 0:
             self.selected = 0
+
+        
 
     def draw_highlighted_text(self, y, x, string, indices):
         """Draws a string at the given location, highlighting the specified indices."""
@@ -62,7 +80,7 @@ class Interface():
                 else:
                     self.win.addstr(y, x + i, string[i])
     
-    def draw(self, matches, command_list, state):
+    def draw(self):
         # Setup constants
         self.compute_constants()
 
@@ -71,18 +89,25 @@ class Interface():
         self.win.border(0, 0, 0, ' ', 0, 0, curses.ACS_VLINE, curses.ACS_VLINE)
         self.win.hline(self.const.input_separator_y, self.const.input_separator_x, curses.ACS_HLINE, self.const.input_separator_len)
 
-        # Add contents
+        # Various bits of information shown on the border
         self.display_version()
-        self.display_num_commands(matches, command_list)
-        self.win.addstr(self.const.input_y, self.const.input_x, self.const.input_prompt_str)
-        self.win.addstr(self.const.input_str_y, self.const.input_str_x, self.input_str)
+        self.display_num_commands()
 
-        if matches:                                             # Fuzzy find search results
-            if len(matches) > 0 and self.input_str == matches[self.selected][0].alias:
+        # Display the prompt string
+        self.win.addstr(self.const.input_y, self.const.input_x, self.const.input_prompt_str)
+        self.win.addstr(self.const.input_str_y, self.const.input_str_x, self.input_str[:self.search_str_idx])
+        self.win.addstr(self.const.input_str_y,
+                        self.const.input_str_x + self.search_str_idx,
+                        self.input_str[self.search_str_idx:],
+                        curses.A_UNDERLINE | curses.color_pair(2))
+
+        # Display commands that fuzzy-match the $search command
+        if self.matches:
+            if len(self.matches) > 0 and self.input_str == self.matches[self.selected][0].alias:
                 run_str = "Press enter to run"
                 self.win.addstr(self.const.input_str_y, curses.COLS - len(run_str) - 10, run_str, curses.A_STANDOUT)
             
-            filtered = matches[:self.const.list_max_num_lines]
+            filtered = self.matches[:self.const.list_max_num_lines]
             for match_idx in range(len(filtered)):
                 cmd, indices, _ = filtered[match_idx]
                 idx_str = str(match_idx) + ": " if match_idx < 10 else ""
@@ -118,15 +143,11 @@ class Interface():
     # def display_terminal_size(self):
     #     self.win.addstr(0, 0, f"cols: {curses.COLS}, lines: {curses.LINES}")
 
-    def display_num_commands(self, matches, command_list):
-        self.win.addstr(0, 20, f" Displaying {len(matches)} / {len(command_list)} commands ")
+    def display_num_commands(self):
+        self.win.addstr(0, 20, f" Displaying {len(self.matches)} / {len(self.command_list)} commands ")
 
     def display_version(self):
         self.win.addstr(0, 2, " act v.0.1 ", curses.color_pair(1) | curses.A_BOLD)
     
     def getch(self):
         return self.win.getch()
-    
-    def draw_state(self, state):
-        state_str = str(state)
-        self.win.addstr(3, 1, state_str)

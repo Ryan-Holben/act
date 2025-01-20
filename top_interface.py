@@ -11,12 +11,12 @@ def match(state, *match_list):
 
 class TopInterface():
     """Class that manages all UI panels, all state around where the user is inside the UI, etc."""
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, command_list):
         # Store screen reference
         self.stdscr = stdscr
 
         # Set up interface subclasses to manage
-        self.interface_search = Interface(self.stdscr)
+        self.interface_search = Interface(self.stdscr, command_list)
         self.menu = MenuInterface(self.stdscr, "Menu", lines=9, cols=60)
         self.save_interface = SaveInterface(self.stdscr, "Save Command", lines=9, cols=60)
         self.delete_interface = DeleteInterface(self.stdscr, "Delete Command", lines=9, cols=60)
@@ -62,10 +62,10 @@ class TopInterface():
         elif self.state[-1] == "delete":
             self.delete_interface.show()
     
-    def draw_all(self, command_list, matches):
+    def draw_all(self):
         """Draw all windows/panels."""
         # Always draw the search interface as a base.  Other menus draw on top of it.
-        self.interface_search.draw(matches, command_list, self.state)
+        self.interface_search.draw()
 
         # Use our state to determine which menu class to draw
         if match(self.state, "menu"):
@@ -81,7 +81,7 @@ class TopInterface():
         curses.panel.update_panels()
         curses.doupdate()
 
-    def process_input(self, c, command_list, matches):
+    def process_input(self, c):
         if match(self.state, "main"):
             if c == 27:
                 self.change_state(["menu"])
@@ -89,7 +89,7 @@ class TopInterface():
                 # Enter key runs the command
                 return self.interface_search.input_str
             else:
-                self.interface_search.process_input(c, command_list, matches)
+                self.interface_search.process_input(c)
         elif match(self.state, "menu"):
             if len(self.state) == 1:
                 if c == 27:
@@ -108,7 +108,8 @@ class TopInterface():
                     if c == 27:
                         self.change_state(self.state[:-1])
                     if c == 10:
-                        command_list.remove(matches[self.interface_search.selected][0])
+                        # command_list.remove(matches[self.interface_search.selected][0])
+                        # TODO FIX THIS
                         self.change_state(self.state[:-1])
 
     def getch(self):
