@@ -1,13 +1,14 @@
 import curses
 import curses.panel
 import os
-import subprocess
 
-from command import Command
 from command_list import CommandList
 import constants
 from top_interface import TopInterface
 
+# Load the command list from disk.  Since main() is wrapped by curses which expects
+# main to have certain arguments, and we need to access the command list both
+# inside and outside of main, this forces us to give command_list this scope.
 command_list = CommandList(constants.command_list_filename)
 
 def main(stdscr):
@@ -34,33 +35,32 @@ def main(stdscr):
     return None
 
 if __name__ == "__main__":
-    # Cleanup any previously existing output
+    # Clean up any previously existing output
     if os.path.exists(constants.output_filename):
         os.remove(constants.output_filename)
 
-    # The OS by default inserts a delay before reading ESC
+    # By default the OS inserts a delay before reading ESC.  We override this.
     os.environ.setdefault("ESCDELAY", "0")
 
-    # Set up curses in a way that plays nicely with the terminal.  If we exit in any way, including by throwing
-    #   exceptions, an exit hook will restore the terminal to its previous state.  Also sets some commonly used
-    #   settings.
+    # Set up curses in a way that plays nicely with the terminal.  If we exit in
+    # any way, including by throwing exceptions, an exit hook will restore th
+    # terminal to its previous state.  Also sets some commonly used settings.
     ret = curses.wrapper(main)
 
     # If main() returned a command the user wants to run, we:
-    # - print its resolved form
-    # - write it to a special file & exit
-    # - act.sh will then see that file & execute the command it contains
+    # - print the user's command
+    # - print command's resolved form that will be executed by the shell
+    # - write resolved form to a temporary file & exit
+    # - after this Python script terminates, act.sh will then look for this output
+    #   file & execute the command it contains
     if ret is not None:
+        print(f"\nact>   {ret}")
         final_cmd = command_list.expand_command(ret)
-        print("> " + final_cmd + "\n")
-        with open(constants.output_filename, "w") as outfile:
-            outfile.write(final_cmd)
-
-
-# def test():
-#     print(command_list.expand_command("echo $cat"))
-#     # print(len(command_list.commands))
-#     # for alias in command_list.commands:
-#     #     print(alias)
-
-# test()
+        print(f"shell> {final_cmd}\n")
+        try:
+            with open(constants.output_filename, "w") as outfile:
+                outfile.write(final_cmd)
+        except Exception as e:
+            print(f"Error encountered while writing to {constants.output_filename}:")
+            print(e)
+            print("act may not function until this error is resolved! "))
