@@ -4,7 +4,7 @@
 # - Makes this script have executable permissions (not necessary, but people like that)
 # - Export to ~/.zshrc and whatever else people use:
 # act() {
-#    /Users/ryan/Documents/dev/act/act.sh <-- Some install location
+#    /Users/ryan/Documents/dev/act/act.sh $* <-- Some install location
 # }
 # - Run:  source ~/.zshrc
 
@@ -17,7 +17,7 @@ SCRIPT_PATH=$(dirname $0)
 # then cd back to the calling location.  (The user will expect to run commands
 # at the calling location, not the script location.)
 cd $SCRIPT_PATH
-python3 act.py
+python3 act.py $*
 cd $CALLING_PATH
 
 # If the user chose a command to run in act.py, the final resolved command
@@ -26,5 +26,5 @@ cd $CALLING_PATH
 ACT_OUTPUT_PATH="${SCRIPT_PATH}/act_output.txt"
 if [ -f $ACT_OUTPUT_PATH ]; then
     bash $ACT_OUTPUT_PATH
-    rm "${SCRIPT_PATH}/act_output.txt"
+    # rm "${SCRIPT_PATH}/act_output.txt"
 fi

@@ -1,7 +1,9 @@
 import curses
 import curses.panel
 import os
+import sys
 
+from command import Command
 from command_list import CommandList
 import constants
 from top_interface import TopInterface
@@ -35,6 +37,26 @@ def main(stdscr):
     return None
 
 if __name__ == "__main__":
+    # Some basic command line args
+    # TODO: Update this and make it more formal, these are all temporary
+    #       solutions.
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg == "last":
+            try:
+                with open(constants.output_filename, "r") as infile:
+                    final_cmd = infile.read()
+                    print(f"shell> {final_cmd}\n")
+            except:
+                print("Last act command not found, try running a new command")
+            exit()
+        if arg == "add":
+            alias = input("Enter command alias: ")
+            doc = input("Enter description: ")
+            code = input("Enter code: ")
+            command_list.add(Command(alias, doc, code))
+
+
     # Clean up any previously existing output
     if os.path.exists(constants.output_filename):
         os.remove(constants.output_filename)
@@ -63,4 +85,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error encountered while writing to {constants.output_filename}:")
             print(e)
-            print("act may not function until this error is resolved! "))
+            print("act may not function until this error is resolved! ")
