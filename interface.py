@@ -40,7 +40,7 @@ class Interface():
         if c >= 32 and c < 127:                       # Standard text input
             if len(self.input_str) < self.const.input_str_w - 1:
                 self.input_str += chr(c)
-        elif c == 127 and len(self.input_str) > 0:    # Delete key
+        elif (c == curses.KEY_BACKSPACE or c == 127) and len(self.input_str) > 0:    # Delete key
             self.input_str = self.input_str[:-1]
         elif c == ord("\t"):                          # Tab autocompletes using the selected command
             self.input_str = self.input_str[:self.search_str_idx] + self.matches[self.selected][0].alias

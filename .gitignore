@@ -1,3 +1,4 @@
 __pycache__
+*.pyc
 commands.pkl
 act_output.txt
