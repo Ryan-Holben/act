@@ -14,6 +14,7 @@ class TopInterface():
     def __init__(self, stdscr, command_list):
         # Store screen reference
         self.stdscr = stdscr
+        self.height, self.width = stdscr.getmaxyx()
 
         # Set up interface subclasses to manage
         self.interface_search = Interface(self.stdscr, command_list)
@@ -27,7 +28,9 @@ class TopInterface():
     def check_for_resize(self, c):
         """Check for a special key that indicates the terminal was resized, and then
             recompute interfaces."""
-        if c == curses.KEY_RESIZE:
+        y, x = self.stdscr.getmaxyx()
+        if self.height != y or self.width != x:
+            self.height, self.width = y, x
             self.resize_all()
 
     def resize_all(self):
