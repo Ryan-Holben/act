@@ -20,16 +20,17 @@ class CommandList:
                 self.commands = pickle.load(handle)
         if len(self.commands) == 0:
             self.commands = OrderedDict([])
-            self.add(Command("list/python", "List all Python files in the current folder", "ls -lah *.py"))
-            self.add(Command("home", "Print the home directory", "echo $HOME"))
             self.add(Command("Fancy echo", "See what it does!", "echo We live in $HOME and we\\\'re visiting $(pwd)"))
             self.add(Command("Hello world", "This is a test command", "echo Hello world!"))
-            self.add(Command("cat", "dog", "bird"))
             self.add(Command("list files", "List all files in human readable format", "ls -lah"))
             self.add(Command("test", "Test expanding commands", "echo $mycmd"))
             self.add(Command("mycmd", "String for hello world", "\"hello world\""))
             self.add(Command("linecount", "Count the lines in a file", "wc -l"))
-            self.add(Command("git/commits", "Succinct list of git commits", "git log --oneline"))
+            self.add(Command("git/commits", "Succinct list of git commits", "git log --oneline --graph"))
+            self.add(Command("git/stat", "Quick summary of local git changes", "git status && git diff --stat"))
+            self.add(Command("size/all", "List file & folder sizes in the current folder", "du -sh -- * | $sort"))
+            self.add(Command("size/folders", "List folder sizes in the current folder", "du -sh -- */ | $sort"))
+            self.add(Command("sort", "Sort piped lines in decreasing order", "sort -rh"))
 
 
     def save(self):

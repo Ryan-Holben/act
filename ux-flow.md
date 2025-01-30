@@ -39,3 +39,13 @@ Press ESC to bring up menu
 
     Pros: Easy to nest/combine/build up.  More familiar for coders, who are the most likely user
     Cons: A little hard to read.  But...the user can fuzzy search docstrings using natural language anyway
+
+
+# Example function arguments
+
+$myfunc(filename, cat) <-- This is what it will look like in the alias only
+
+In the actual code it would look like ---> doing some $0 stuff $1 with $0
+So, the alias definition has the rules:
+- Parens and commas let you put in variable names that are helpful to the user
+- The actual code should just have $0, $1, $2 etc, to let the code refer to any other aliases

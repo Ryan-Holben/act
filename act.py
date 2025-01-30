@@ -57,9 +57,13 @@ if __name__ == "__main__":
             command_list.add(Command(alias, doc, code))
 
 
+    # TODO: Decide if some form of this should exist.  Currently this means if 
+    #       the user runs a command, then runs act again and cancels, then
+    #       it clears the last run act command.  We expect act last to always
+    #       fetch & run the last *run* command
     # Clean up any previously existing output
-    if os.path.exists(constants.output_filename):
-        os.remove(constants.output_filename)
+    # if os.path.exists(constants.output_filename):
+    #     os.remove(constants.output_filename)
 
     # By default the OS inserts a delay before reading ESC.  We override this.
     os.environ.setdefault("ESCDELAY", "0")
