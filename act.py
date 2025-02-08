@@ -3,10 +3,10 @@ import curses.panel
 import os
 import sys
 
-from command import Command
-from command_list import CommandList
-import constants
-from top_interface import TopInterface
+from include.command import Command
+from include.command_list import CommandList
+from include import constants
+from include.top_interface import TopInterface
 
 # Load the command list from disk.  Since main() is wrapped by curses which expects
 # main to have certain arguments, and we need to access the command list both

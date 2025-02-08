@@ -1,22 +1,19 @@
-from command import Command
+from .command import Command
 
 from collections import OrderedDict
 from pathlib import Path
 import pickle
 
-def filename_path(filename):
-    return Path(__file__).parent / filename
-
 class CommandList:
     def __init__(self, filename):
         self.commands = OrderedDict([])
-        self.filename = filename
+        self.path = Path(filename)
         self.load()
 
     def load(self):
-        path = filename_path(self.filename)  
-        if path.exists():
-            with open(path, "rb") as handle:
+        print(self.path)
+        if self.path.exists():
+            with open(self.path, "rb") as handle:
                 self.commands = pickle.load(handle)
         if len(self.commands) == 0:
             self.commands = OrderedDict([])
@@ -34,8 +31,7 @@ class CommandList:
 
 
     def save(self):
-        path = filename_path(self.filename)
-        with open(path, "wb") as handle:
+        with open(self.path, "wb") as handle:
             pickle.dump(self.commands, handle)
 
     def fuzzy_find(self, search_string):

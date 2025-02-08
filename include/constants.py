@@ -1,7 +1,9 @@
 import curses
+from pathlib import Path
 
-command_list_filename = "commands.pkl"
-output_filename = "act_output.txt"
+data_folder = Path(__file__).parent.parent / "data"
+command_list_filename = data_folder / "commands.pkl"
+output_filename = data_folder / "act_output.txt"
 
 class InterfaceConstants():
     def __init__(self):

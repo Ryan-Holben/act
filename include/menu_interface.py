@@ -1,4 +1,4 @@
-from dialogue_box import DialogueBox
+from .dialogue_box import DialogueBox
 import curses
 
 class MenuInterface(DialogueBox):

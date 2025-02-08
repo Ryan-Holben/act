@@ -1,5 +1,5 @@
 import curses
-from constants import InterfaceConstants
+from .constants import InterfaceConstants
 
 class DialogueBox():
     """Generic dialogue box.  Intended for subclassing."""

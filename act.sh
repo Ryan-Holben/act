@@ -23,7 +23,7 @@ cd $CALLING_PATH
 # If the user chose a command to run in act.py, the final resolved command
 # will be in the following temporary file.  If that file exists, run the 
 # command and then clean up the temporary file.
-ACT_OUTPUT_PATH="${SCRIPT_PATH}/act_output.txt"
+ACT_OUTPUT_PATH="${SCRIPT_PATH}/data/act_output.txt"
 if [ -f $ACT_OUTPUT_PATH ]; then
     bash $ACT_OUTPUT_PATH
     # rm "${SCRIPT_PATH}/act_output.txt"

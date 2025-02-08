@@ -1,4 +1,4 @@
-from dialogue_box import DialogueBox
+from .dialogue_box import DialogueBox
 
 class SaveInterface(DialogueBox):
     def draw_internal(self):

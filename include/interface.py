@@ -1,8 +1,7 @@
 import curses
 import curses.panel
 
-from command_list import CommandList
-import constants
+from . import constants
 
 class Interface():
     def __init__(self, stdscr, command_list):

@@ -1,9 +1,9 @@
 import curses
 
-from interface import Interface
-from menu_interface import MenuInterface
-from del_interface import DeleteInterface
-from save_interface import SaveInterface
+from .interface import Interface
+from .menu_interface import MenuInterface
+from .del_interface import DeleteInterface
+from .save_interface import SaveInterface
 
 def match(state, *match_list):
     """Check if match_list is an initial segment of state."""
