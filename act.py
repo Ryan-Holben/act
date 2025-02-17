@@ -8,10 +8,37 @@ from include.command_list import CommandList
 from include import constants
 from include.top_interface import TopInterface
 
+EXIT_CODE_OK_AND_RUN_NOTHING = 0
+EXIT_CODE_ERROR = 1
+EXIT_CODE_RUN_COMMAND = 255
+
+
 # Load the command list from disk.  Since main() is wrapped by curses which expects
 # main to have certain arguments, and we need to access the command list both
 # inside and outside of main, this forces us to give command_list this scope.
 command_list = CommandList(constants.command_list_filename)
+
+def exit_and_run_command(command=None):
+    if command: # If a command is provided, write it and then exit
+        try:
+            with open(constants.output_filename, "w") as outfile:
+                outfile.write(command)
+                exit(EXIT_CODE_RUN_COMMAND)
+        except Exception as e:
+            print(f"Error encountered while writing to {constants.output_filename}:")
+            print(e)
+            print("act may not function until this error is resolved! ")
+            exit(EXIT_CODE_ERROR)
+    else:   # If no command is provided, check to see if a previous command exists for us to run
+        try:
+            with open(constants.output_filename, "r") as infile:
+                final_cmd = infile.read()
+                print(f"shell> {final_cmd}\n")
+                exit(EXIT_CODE_RUN_COMMAND)
+        except Exception as e:
+            print(e)
+            print("Last act command not found, try running a new command")
+            exit(EXIT_CODE_ERROR)
 
 def main(stdscr):
     # Initialize the interface
@@ -42,14 +69,8 @@ if __name__ == "__main__":
     #       solutions.
     if len(sys.argv) > 1:
         arg = sys.argv[1]
-        if arg == "last":
-            try:
-                with open(constants.output_filename, "r") as infile:
-                    final_cmd = infile.read()
-                    print(f"shell> {final_cmd}\n")
-            except:
-                print("Last act command not found, try running a new command")
-            exit()
+        if arg == "last":   # Should not be reachable, handled by the calling act.sh script
+            exit_and_run_command()
         if arg == "add":
             alias = input("Enter command alias: ")
             doc = input("Enter description: ")
@@ -83,10 +104,5 @@ if __name__ == "__main__":
         print(f"\nact>   {ret}")
         final_cmd = command_list.expand_command(ret)
         print(f"shell> {final_cmd}\n")
-        try:
-            with open(constants.output_filename, "w") as outfile:
-                outfile.write(final_cmd)
-        except Exception as e:
-            print(f"Error encountered while writing to {constants.output_filename}:")
-            print(e)
-            print("act may not function until this error is resolved! ")
+        exit_and_run_command(final_cmd)
+    exit(EXIT_CODE_OK_AND_RUN_NOTHING)

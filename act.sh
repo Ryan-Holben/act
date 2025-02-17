@@ -12,19 +12,21 @@
 # Note where the user called the command from, and where this script is installed
 CALLING_PATH=$(pwd)
 SCRIPT_PATH=$(dirname $0)
+ACT_OUTPUT_PATH="${SCRIPT_PATH}/data/act_output.txt"
 
-# cd to script location to make Python imports and file IO work correctly,
+# cd to script location to make Python imports and file IO work correctly
 # then cd back to the calling location.  (The user will expect to run commands
 # at the calling location, not the script location.)
 cd $SCRIPT_PATH
 python3 act.py $*
+exit_code=$?
 cd $CALLING_PATH
 
 # If the user chose a command to run in act.py, the final resolved command
 # will be in the following temporary file.  If that file exists, run the 
 # command and then clean up the temporary file.
-ACT_OUTPUT_PATH="${SCRIPT_PATH}/data/act_output.txt"
-if [ -f $ACT_OUTPUT_PATH ]; then
-    bash $ACT_OUTPUT_PATH
-    # rm "${SCRIPT_PATH}/act_output.txt"
+if [ "$exit_code" -eq 255 ]; then
+    if [ -f $ACT_OUTPUT_PATH ]; then
+        bash $ACT_OUTPUT_PATH
+    fi
 fi

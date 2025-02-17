@@ -11,7 +11,6 @@ class CommandList:
         self.load()
 
     def load(self):
-        print(self.path)
         if self.path.exists():
             with open(self.path, "rb") as handle:
                 self.commands = pickle.load(handle)
